@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use crate::scene::StackedSprite;
 
 const PLAYER_SPEED: f32 = 100.;
 const ROTATION_SPEED: f32 = 2.;
@@ -13,16 +14,34 @@ pub(super) fn plugin(app: &mut App) {
 
 fn setup_player(
     mut commands: Commands,
-    asset_server: Res<AssetServer>
+    asset_server: Res<AssetServer>,
+    mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>
 ) {
+    let sprite: Handle<Image> = asset_server.load("test.png");
+    let layout = TextureAtlasLayout::from_grid((32, 32).into(), 1, 1, None, None);
+    let texture_atlas_layout = texture_atlas_layouts.add(layout);
+
     commands.spawn((
         Player,
-        SpriteBundle {
-            transform: Transform::from_xyz(0., 0., 2.),
-            texture: asset_server.load("test.png"),
-            ..default()
+        SpatialBundle::from_transform(Transform::from_xyz(0., 0., 2.))
+    )).with_children(|parent| {
+        for i in 0..1 {
+            parent.spawn((
+                StackedSprite {
+                    height: i
+                },
+                SpriteBundle {
+                    transform: Transform::from_xyz(0., 0., i as f32),
+                    texture: sprite.clone(),
+                    ..default()
+                },
+                TextureAtlas {
+                    layout: texture_atlas_layout.clone(),
+                    index: i
+                }
+            ));
         }
-    ));
+    });
 }
 
 fn move_player(
@@ -40,23 +59,18 @@ fn move_player(
     if kb_input.pressed(KeyCode::KeyW) {
         movement_factor.y += 1.;
     }
-
     if kb_input.pressed(KeyCode::KeyS) {
         movement_factor.y -= 1.;
     }
-
     if kb_input.pressed(KeyCode::KeyA) {
         movement_factor.x -= 1.;
     }
-
     if kb_input.pressed(KeyCode::KeyD) {
         movement_factor.x += 1.;
     }
-
     if kb_input.pressed(KeyCode::KeyY) {
         rotation_factor += 1.;
     }
-
     if kb_input.pressed(KeyCode::KeyO) {
         rotation_factor -= 1.;
     }
