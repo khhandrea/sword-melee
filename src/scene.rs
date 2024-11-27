@@ -1,10 +1,7 @@
 use bevy::prelude::*;
 use bevy::sprite::{MaterialMesh2dBundle, Mesh2dHandle};
-
-#[derive(Component)]
-pub struct StackedSprite { 
-    pub height: usize
-}
+use crate::sprite_sheet::{BoxSpriteSheet};
+use crate::volume_object::{StackedSprite, VirtualPosition, VolumeObject};
 
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(Startup, (spawn_background, spawn_block));
@@ -27,19 +24,19 @@ fn spawn_background(
 fn spawn_block(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
-    mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>
+    sprite_atlas: Res<BoxSpriteSheet>
 ) {
     let sprite: Handle<Image> = asset_server.load("box.png");
-    let layout = TextureAtlasLayout::from_grid((32, 32).into(), 8, 1, None, None);
-    let texture_atlas_layout = texture_atlas_layouts.add(layout);
 
-    commands.spawn(
+    commands.spawn((
+        VolumeObject,
+        VirtualPosition(Vec3::ZERO),
         SpatialBundle::from_transform(Transform::from_xyz(32., 32., 1.))
-    ).with_children(|parent| {
-        for i in 0..8 {
+    )).with_children(|parent| {
+        for i in 1..8 {
             parent.spawn((
                 StackedSprite {
-                    height: i
+                    height: i as f32
                 },
                 SpriteBundle {
                     transform: Transform::from_xyz(0., 0., i as f32),
@@ -47,12 +44,11 @@ fn spawn_block(
                     ..default()
                 },
                 TextureAtlas {
-                    layout: texture_atlas_layout.clone(),
+                    layout: sprite_atlas.0.clone(),
                     index: i
                 }
             ));
         }
     });
-
 }
 

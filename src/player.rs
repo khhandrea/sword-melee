@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use crate::scene::StackedSprite;
+use crate::sprite_sheet::PlayerSpriteSheet;
 
 const PLAYER_SPEED: f32 = 100.;
 const ROTATION_SPEED: f32 = 2.;
@@ -15,33 +15,22 @@ pub(super) fn plugin(app: &mut App) {
 fn setup_player(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
-    mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>
+    sprite_atlas: Res<PlayerSpriteSheet>
 ) {
     let sprite: Handle<Image> = asset_server.load("test.png");
-    let layout = TextureAtlasLayout::from_grid((32, 32).into(), 1, 1, None, None);
-    let texture_atlas_layout = texture_atlas_layouts.add(layout);
 
     commands.spawn((
         Player,
-        SpatialBundle::from_transform(Transform::from_xyz(0., 0., 2.))
-    )).with_children(|parent| {
-        for i in 0..1 {
-            parent.spawn((
-                StackedSprite {
-                    height: i
-                },
-                SpriteBundle {
-                    transform: Transform::from_xyz(0., 0., i as f32),
-                    texture: sprite.clone(),
-                    ..default()
-                },
-                TextureAtlas {
-                    layout: texture_atlas_layout.clone(),
-                    index: i
-                }
-            ));
+        SpriteBundle {
+            transform: Transform::from_xyz(-1., 0., 2.),
+            texture: sprite,
+            ..default()
+        },
+        TextureAtlas {
+            layout: sprite_atlas.0.clone(),
+            index: 0
         }
-    });
+    ));
 }
 
 fn move_player(

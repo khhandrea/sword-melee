@@ -34,13 +34,14 @@ fn follow_player(
         return;
     };
 
+    // Follow translation
     let target_position = player_transform.translation + player_transform.up() * CAMERA_POSITION;
-
     camera_transform.translation = camera_transform.translation.lerp(
         target_position,
         time.delta_seconds() * CAMERA_SMOOTHNESS
     );
 
+    // Follow rotation
     camera_transform.rotation = camera_transform.rotation.slerp(
         player_transform.rotation,
         time.delta_seconds() * CAMERA_SMOOTHNESS
