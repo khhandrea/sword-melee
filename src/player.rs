@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 use crate::sprite_sheet::PlayerSpriteSheet;
+use crate::volume_object::{StackedSprite, VolumeObject};
 
 const PLAYER_SPEED: f32 = 100.;
 const ROTATION_SPEED: f32 = 2.;
@@ -21,24 +22,35 @@ fn setup_player(
 
     commands.spawn((
         Player,
-        SpriteBundle {
-            transform: Transform::from_xyz(-1., 0., 2.),
-            texture: sprite,
-            ..default()
+        VolumeObject {
+            virtual_position: Vec3::ZERO
         },
-        TextureAtlas {
-            layout: sprite_atlas.0.clone(),
-            index: 0
+        SpatialBundle::default()
+    )).with_children(|parent| {
+        for i in 0..1 {
+            parent.spawn((
+                StackedSprite {
+                    height: i as f32
+                },
+                SpriteBundle {
+                    texture: sprite.clone(),
+                    ..default()
+                },
+                TextureAtlas {
+                    layout: sprite_atlas.0.clone(),
+                    index: i
+                }
+            ));
         }
-    ));
+    });
 }
 
 fn move_player(
-    mut player: Query<&mut Transform, With<Player>>,
+    mut player_query: Query<(&mut Transform, &mut VolumeObject), With<Player>>,
     time: Res<Time>,
     kb_input: Res<ButtonInput<KeyCode>>
 ) {
-    let Ok(mut player_transform) = player.get_single_mut() else {
+    let Ok((mut player_transform, mut player_volume_object)) = player_query.get_single_mut() else {
         return;
     };
 
@@ -72,6 +84,6 @@ fn move_player(
     let movement_distance = movement_factor.normalize_or_zero() * PLAYER_SPEED * time.delta_seconds();
     let movement_direction = player_transform.rotation;
     let translation_delta = movement_direction * movement_distance.extend(0.);
-    player_transform.translation += translation_delta;
+    player_volume_object.virtual_position += translation_delta;
 }
 

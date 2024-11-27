@@ -1,10 +1,10 @@
 use bevy::prelude::*;
 
 mod camera;
-pub mod player;
-pub mod scene;
-pub mod sprite_sheet;
-pub mod volume_object;
+mod player;
+mod scene;
+mod sprite_sheet;
+mod volume_object;
 
 pub struct AppPlugin;
 

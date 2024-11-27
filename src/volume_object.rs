@@ -4,10 +4,9 @@ use crate::camera::MainCamera;
 const SPRITE_STACK_SPACE: f32 = 3.;
 
 #[derive(Component)]
-pub struct VolumeObject;
-
-#[derive(Component)]
-pub struct VirtualPosition(pub Vec3);
+pub struct VolumeObject {
+    pub virtual_position: Vec3
+}
 
 #[derive(Component)]
 pub struct StackedSprite {
@@ -15,13 +14,14 @@ pub struct StackedSprite {
 }
 
 pub(super) fn plugin(app: &mut App) {
-    app.add_systems(Update, (update_stacked_sprite_translation,
+    app.add_systems(Update, (update_volume_object_translation,
+                             update_stacked_sprite_translation,
                              update_stacked_sprite_depth));
 }
 
-fn update_stacked_sprite_translation(
-    mut transform_query: Query<(&mut Transform, &StackedSprite), Without<MainCamera>>,
-    camera_query: Query<&Transform, With<MainCamera>>
+fn update_volume_object_translation(
+    camera_query: Query<&Transform, With<MainCamera>>,
+    mut volume_object_query: Query<(&mut Transform, &VolumeObject), Without<MainCamera>>
 ) {
     let Ok(camera_transform) = camera_query.get_single() else {
         return;
@@ -29,7 +29,23 @@ fn update_stacked_sprite_translation(
 
     let camera_direction = camera_transform.up();
 
-    for (mut transform, stacked_sprite) in &mut transform_query {
+    for (mut transform, volume_object) in &mut volume_object_query {
+        let offset = camera_direction * volume_object.virtual_position.z;
+        transform.translation = volume_object.virtual_position + offset;
+    }
+}
+
+fn update_stacked_sprite_translation(
+    camera_query: Query<&Transform, With<MainCamera>>,
+    mut stacked_sprite_query: Query<(&mut Transform, &StackedSprite), Without<MainCamera>>
+) {
+    let Ok(camera_transform) = camera_query.get_single() else {
+        return;
+    };
+
+    let camera_direction = camera_transform.up();
+
+    for (mut transform, stacked_sprite) in &mut stacked_sprite_query {
         transform.translation = camera_direction * stacked_sprite.height * SPRITE_STACK_SPACE;
     }
 }

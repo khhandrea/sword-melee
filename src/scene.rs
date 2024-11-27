@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use bevy::sprite::{MaterialMesh2dBundle, Mesh2dHandle};
 use crate::sprite_sheet::{BoxSpriteSheet};
-use crate::volume_object::{StackedSprite, VirtualPosition, VolumeObject};
+use crate::volume_object::{StackedSprite, VolumeObject};
 
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(Startup, (spawn_background, spawn_block));
@@ -29,17 +29,17 @@ fn spawn_block(
     let sprite: Handle<Image> = asset_server.load("box.png");
 
     commands.spawn((
-        VolumeObject,
-        VirtualPosition(Vec3::ZERO),
-        SpatialBundle::from_transform(Transform::from_xyz(32., 32., 1.))
+        VolumeObject {
+            virtual_position: Vec3::ZERO
+        },
+        SpatialBundle::default()
     )).with_children(|parent| {
-        for i in 1..8 {
+        for i in 0..8 {
             parent.spawn((
                 StackedSprite {
                     height: i as f32
                 },
                 SpriteBundle {
-                    transform: Transform::from_xyz(0., 0., i as f32),
                     texture: sprite.clone(),
                     ..default()
                 },
