@@ -18,7 +18,7 @@ fn setup_player(
     asset_server: Res<AssetServer>,
     sprite_atlas: Res<PlayerSpriteSheet>
 ) {
-    let sprite: Handle<Image> = asset_server.load("test.png");
+    let sprite: Handle<Image> = asset_server.load("player.png");
 
     commands.spawn((
         Player,
@@ -27,7 +27,7 @@ fn setup_player(
         },
         SpatialBundle::default()
     )).with_children(|parent| {
-        for i in 0..1 {
+        for i in 0..8 {
             parent.spawn((
                 StackedSprite {
                     height: i as f32

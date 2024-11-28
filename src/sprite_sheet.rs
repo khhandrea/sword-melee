@@ -7,7 +7,7 @@ impl FromWorld for PlayerSpriteSheet {
     fn from_world(world: &mut World) -> Self {
         let texture_atlas = TextureAtlasLayout::from_grid(
             (32, 32).into(),
-            1, 1,
+            8, 1,
             None, None
         );
         let mut texture_atlases = world.get_resource_mut::<Assets<TextureAtlasLayout>>().unwrap();

@@ -37,16 +37,22 @@ fn update_volume_object_translation(
 
 fn update_stacked_sprite_translation(
     camera_query: Query<&Transform, With<MainCamera>>,
-    mut stacked_sprite_query: Query<(&mut Transform, &StackedSprite), Without<MainCamera>>
+    mut stacked_sprite_query: Query<(&mut Transform, &GlobalTransform, &StackedSprite), Without<MainCamera>>
 ) {
     let Ok(camera_transform) = camera_query.get_single() else {
         return;
     };
 
-    let camera_direction = camera_transform.up();
+    let camera_up = camera_transform.up().as_vec3();
 
-    for (mut transform, stacked_sprite) in &mut stacked_sprite_query {
-        transform.translation = camera_direction * stacked_sprite.height * SPRITE_STACK_SPACE;
+    for (mut transform, global_transform, stacked_sprite) in &mut stacked_sprite_query {
+        let sprite_up = global_transform.up().as_vec3();
+        let sprite_to_camera = camera_up - sprite_up;
+        let ccw = sprite_up.cross(sprite_to_camera).z;
+        let angle = ccw * camera_up.angle_between(sprite_up);
+        let rotation = Quat::from_axis_angle(Vec3::Z, angle);
+        let direction = rotation * Vec3::Y;
+        transform.translation = direction * stacked_sprite.height * SPRITE_STACK_SPACE;
     }
 }
 
