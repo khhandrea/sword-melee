@@ -19,6 +19,46 @@ pub(super) fn plugin(app: &mut App) {
                              update_stacked_sprite_depth));
 }
 
+pub fn spawn_volume_object<C>(
+    commands: &mut Commands,
+    texture_atlas_layouts: &Res<Assets<TextureAtlasLayout>>,
+    sprite: Handle<Image>,
+    sprite_atlas: Handle<TextureAtlasLayout>,
+    virtual_position: Vec3,
+    components: C
+) where 
+    C: Bundle
+{
+    let Some(texture_atlas_layout) = texture_atlas_layouts.get(&sprite_atlas) else {
+        return;
+    };
+    let max_index = texture_atlas_layout.textures.len() - 1;
+
+    commands.spawn((
+        components,
+        VolumeObject {
+            virtual_position
+        },
+        SpatialBundle::default()
+    )).with_children(|parent| {
+        for i in 0..=max_index {
+            parent.spawn((
+                StackedSprite {
+                    height: i as f32
+                },
+                SpriteBundle {
+                    texture: sprite.clone(),
+                    ..default()
+                },
+                TextureAtlas {
+                    layout: sprite_atlas.clone(),
+                    index: i
+                }
+            ));
+        }
+    });
+}
+
 fn update_volume_object_translation(
     camera_query: Query<&Transform, With<MainCamera>>,
     mut volume_object_query: Query<(&mut Transform, &VolumeObject), Without<MainCamera>>

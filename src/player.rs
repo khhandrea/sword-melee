@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 use crate::sprite_sheet::PlayerSpriteSheet;
-use crate::volume_object::{StackedSprite, VolumeObject};
+use crate::volume_object::{StackedSprite, VolumeObject, spawn_volume_object};
 
 const PLAYER_SPEED: f32 = 100.;
 const ROTATION_SPEED: f32 = 2.;
@@ -16,33 +16,19 @@ pub(super) fn plugin(app: &mut App) {
 fn setup_player(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
-    sprite_atlas: Res<PlayerSpriteSheet>
+    sprite_atlas: Res<PlayerSpriteSheet>,
+    texture_atlas_layouts: Res<Assets<TextureAtlasLayout>>
 ) {
     let sprite: Handle<Image> = asset_server.load("player.png");
 
-    commands.spawn((
-        Player,
-        VolumeObject {
-            virtual_position: Vec3::ZERO
-        },
-        SpatialBundle::default()
-    )).with_children(|parent| {
-        for i in 0..8 {
-            parent.spawn((
-                StackedSprite {
-                    height: i as f32
-                },
-                SpriteBundle {
-                    texture: sprite.clone(),
-                    ..default()
-                },
-                TextureAtlas {
-                    layout: sprite_atlas.0.clone(),
-                    index: i
-                }
-            ));
-        }
-    });
+    spawn_volume_object(
+        &mut commands,
+        &texture_atlas_layouts,
+        sprite.clone(),
+        sprite_atlas.0.clone(),
+        Vec3::ZERO,
+        (Player)
+    );
 }
 
 fn move_player(
