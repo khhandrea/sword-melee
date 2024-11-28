@@ -14,6 +14,7 @@ fn spawn_background(
 ) {
     commands.spawn(
         MaterialMesh2dBundle {
+            transform: Transform::from_xyz(0., 0., -100.),
             mesh: Mesh2dHandle(meshes.add(Rectangle::new(1000., 700.))),
             material: materials.add(Color::srgb(0.4, 0.7, 0.3)),
             ..default()

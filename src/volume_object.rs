@@ -51,20 +51,37 @@ fn update_stacked_sprite_translation(
 }
 
 fn update_stacked_sprite_depth(
-    mut sprite_query: Query<(&mut Transform, &GlobalTransform), (Without<MainCamera>, With<Sprite>)>,
-    camera_query: Query<&Transform, With<MainCamera>>
+    camera_query: Query<&Transform, With<MainCamera>>,
+    volume_object_query: Query<&VolumeObject>,
+    mut sprite_query: Query<(&mut Transform, &Parent), (Without<MainCamera>, With<StackedSprite>)>
 ) {
     let Ok(camera_transform) = camera_query.get_single() else {
         return;
     };
 
-    for (mut transform, global_transform) in &mut sprite_query {
-        let camera_inverse_matrix = camera_transform.compute_matrix().inverse();
-        let global_matrix = global_transform.compute_matrix();
-        let relative_position_matrix = camera_inverse_matrix * global_matrix;
-        let (_, _, relative_position) = relative_position_matrix.to_scale_rotation_translation();
-        let y_position = relative_position.y;
+    let camera_up = camera_transform.up();
 
-        transform.translation.z = -y_position;
+    let mut sorted_sprites: Vec<_> = sprite_query.iter_mut().collect();
+    sorted_sprites.sort_by(|a, b| {
+        let a_parent = volume_object_query.get(a.1.get()).unwrap();
+        let b_parent = volume_object_query.get(b.1.get()).unwrap();
+
+        let a_pos = a_parent.virtual_position;
+        let b_pos = b_parent.virtual_position;
+
+        let a_proj = camera_up.as_vec3().dot(a_pos);
+        let b_proj = camera_up.as_vec3().dot(b_pos);
+
+        match a_proj.partial_cmp(&b_proj).unwrap() {
+            std::cmp::Ordering::Equal => {
+                // If x, y are equal, use z
+                b_pos.z.partial_cmp(&a_pos.z).unwrap()
+            },
+            ord => ord
+        }
+    });
+
+    for (i, (mut transform, _)) in sorted_sprites.into_iter().enumerate() {
+        transform.translation.z = -0.001 * i as f32;
     }
 }
