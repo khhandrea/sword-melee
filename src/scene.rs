@@ -25,8 +25,14 @@ fn spawn_background(
 fn spawn_block(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
-    sprite_atlas: Res<BoxSpriteSheet>
+    sprite_atlas: Res<BoxSpriteSheet>,
+    texture_atlas_layouts: Res<Assets<TextureAtlasLayout>>
 ) {
+    let Some(texture_atlas_layout) = texture_atlas_layouts.get(&sprite_atlas.0) else {
+        return;
+    };
+    let max_index = texture_atlas_layout.textures.len() - 1;
+
     let sprite: Handle<Image> = asset_server.load("box.png");
 
     commands.spawn((
@@ -35,7 +41,7 @@ fn spawn_block(
         },
         SpatialBundle::default()
     )).with_children(|parent| {
-        for i in 0..8 {
+        for i in 0..=max_index {
             parent.spawn((
                 StackedSprite {
                     height: i as f32

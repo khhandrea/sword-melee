@@ -53,7 +53,7 @@ fn update_stacked_sprite_translation(
 fn update_stacked_sprite_depth(
     camera_query: Query<&Transform, With<MainCamera>>,
     volume_object_query: Query<&VolumeObject>,
-    mut sprite_query: Query<(&mut Transform, &Parent), (Without<MainCamera>, With<StackedSprite>)>
+    mut sprite_query: Query<(&mut Transform, &Parent, &StackedSprite), Without<MainCamera>>
 ) {
     let Ok(camera_transform) = camera_query.get_single() else {
         return;
@@ -74,14 +74,14 @@ fn update_stacked_sprite_depth(
 
         match a_proj.partial_cmp(&b_proj).unwrap() {
             std::cmp::Ordering::Equal => {
-                // If x, y are equal, use z
-                b_pos.z.partial_cmp(&a_pos.z).unwrap()
+                // If x, y are equal, use height
+                b.2.height.partial_cmp(&a.2.height).unwrap()
             },
             ord => ord
         }
     });
 
-    for (i, (mut transform, _)) in sorted_sprites.into_iter().enumerate() {
+    for (i, (mut transform, _, _)) in sorted_sprites.into_iter().enumerate() {
         transform.translation.z = -0.001 * i as f32;
     }
 }
