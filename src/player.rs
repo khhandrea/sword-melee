@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 use crate::sprite_sheet::PlayerSpriteSheet;
-use crate::volume_object::{StackedSprite, VolumeObject, spawn_volume_object};
+use crate::volume_object::{spawn_volume_object, VolumeObject};
 
 const PLAYER_SPEED: f32 = 100.;
 const ROTATION_SPEED: f32 = 2.;
@@ -27,7 +27,7 @@ fn setup_player(
         sprite.clone(),
         sprite_atlas.0.clone(),
         Vec3::ZERO,
-        (Player)
+        Player
     );
 }
 

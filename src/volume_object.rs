@@ -88,11 +88,12 @@ fn update_stacked_sprite_translation(
     for (mut transform, global_transform, stacked_sprite) in &mut stacked_sprite_query {
         let sprite_up = global_transform.up().as_vec3();
         let sprite_to_camera = camera_up - sprite_up;
-        let ccw = sprite_up.cross(sprite_to_camera).z;
+        let ccw = sprite_up.cross(sprite_to_camera).z.signum();
         let angle = ccw * camera_up.angle_between(sprite_up);
         let rotation = Quat::from_axis_angle(Vec3::Z, angle);
         let direction = rotation * Vec3::Y;
-        transform.translation = direction * stacked_sprite.height * SPRITE_STACK_SPACE;
+        transform.translation.x = (direction * stacked_sprite.height * SPRITE_STACK_SPACE).x;
+        transform.translation.y = (direction * stacked_sprite.height * SPRITE_STACK_SPACE).y;
     }
 }
 
@@ -104,7 +105,6 @@ fn update_stacked_sprite_depth(
     let Ok(camera_transform) = camera_query.get_single() else {
         return;
     };
-
     let camera_up = camera_transform.up();
 
     let mut sorted_sprites: Vec<_> = sprite_query.iter_mut().collect();
@@ -118,16 +118,24 @@ fn update_stacked_sprite_depth(
         let a_proj = camera_up.as_vec3().dot(a_pos);
         let b_proj = camera_up.as_vec3().dot(b_pos);
 
-        match a_proj.partial_cmp(&b_proj).unwrap() {
+        match b.2.height.partial_cmp(&a.2.height).unwrap() {
             std::cmp::Ordering::Equal => {
-                // If x, y are equal, use height
-                b.2.height.partial_cmp(&a.2.height).unwrap()
+                a_proj.partial_cmp(&b_proj).unwrap()
             },
             ord => ord
         }
+        // match a_proj.partial_cmp(&b_proj).unwrap() {
+            // std::cmp::Ordering::Equal => {
+                // If x, y are equal, use height
+                // b.2.height.partial_cmp(&a.2.height).unwrap()
+            // },
+            // ord => ord
+        // }
     });
 
-    for (i, (mut transform, _, _)) in sorted_sprites.into_iter().enumerate() {
+    println!("DEBUG");
+    for (i, (mut transform, parent, stacked_sprite)) in sorted_sprites.into_iter().enumerate() {
         transform.translation.z = -0.001 * i as f32;
+        println!("position: {}, height: {}, translation.z: {}", volume_object_query.get(parent.get()).unwrap().virtual_position, stacked_sprite.height, transform.translation);
     }
 }
