@@ -133,9 +133,7 @@ fn update_stacked_sprite_depth(
         // }
     });
 
-    println!("DEBUG");
     for (i, (mut transform, parent, stacked_sprite)) in sorted_sprites.into_iter().enumerate() {
         transform.translation.z = -0.001 * i as f32;
-        println!("position: {}, height: {}, translation.z: {}", volume_object_query.get(parent.get()).unwrap().virtual_position, stacked_sprite.height, transform.translation);
     }
 }
